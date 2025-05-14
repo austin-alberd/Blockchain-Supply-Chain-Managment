@@ -2,11 +2,12 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
 	"fmt"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
-var connectionString = "test"
+var connectionString = "./prod.db"
 
 type DataContainer struct {
 	StockNumber     string // The identifier number of the item
@@ -25,7 +26,29 @@ func main() {
 	if validateValidDB(connectionString) {
 
 	} else {
+		fmt.Println("⚠️ [WARNING]: Could not find valid database structure. Creating new.")
 
+		db, err := sql.Open("sqlite3", "./prod.db")
+
+		if err != nil {
+			fmt.Println("💀 [FATAL ERROR]: Could not connect to db", err)
+		}
+
+		defer db.Close()
+		sqlStatement := `
+			CREATE TABLE IF NOT EXISTS blockchain (
+				hash LONGTEXT NOT NULL PRIMARY KEY,
+				prevHash LONGTEXT NOT NULL,
+				data LONGTEXT NOT NULL,
+			)
+		`
+
+		_, err = db.Exec(sqlStatement)
+		if err != nil {
+			fmt.Println("💀[FATAL ERROR]: Could not create blockchain table \n", err)
+		} else {
+			fmt.Println("✅[SUCCESS]: Created blockchain table")
+		}
 	}
 
 	//Variable initializations
