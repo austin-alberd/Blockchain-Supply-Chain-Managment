@@ -23,33 +23,47 @@ type Block struct {
 }
 
 func main() {
-	if validateValidDB(connectionString) {
 
-	} else {
-		fmt.Println("⚠️ [WARNING]: Could not find valid database structure. Creating new.")
+	// Set up the database.
+	db, err := sql.Open("sqlite3", connectionString)
 
-		db, err := sql.Open("sqlite3", "./prod.db")
-
-		if err != nil {
-			fmt.Println("💀 [FATAL ERROR]: Could not connect to db", err)
-		}
-
-		defer db.Close()
-		sqlStatement := `
-			CREATE TABLE IF NOT EXISTS blockchain (
-				hash LONGTEXT NOT NULL PRIMARY KEY,
-				prevHash LONGTEXT NOT NULL,
-				data LONGTEXT NOT NULL,
-			)
-		`
-
-		_, err = db.Exec(sqlStatement)
-		if err != nil {
-			fmt.Println("💀[FATAL ERROR]: Could not create blockchain table \n", err)
-		} else {
-			fmt.Println("✅[SUCCESS]: Created blockchain table")
-		}
+	if err != nil {
+		fmt.Println("💀 [FATAL ERROR]: Could not connect to db", err)
 	}
+
+	defer db.Close()
+	sqlStatement := `
+		CREATE TABLE IF NOT EXISTS blockchain (
+			hash LONGTEXT NOT NULL PRIMARY KEY,
+			prevHash LONGTEXT,
+			data LONGTEXT NOT NULL
+		)
+	`
+
+	_, err = db.Exec(sqlStatement)
+	if err != nil {
+		fmt.Println("💀[FATAL ERROR]: Could not create blockchain table \n", err)
+	} else {
+		fmt.Println("✅[SUCCESS]: Created blockchain table")
+	}
+
+	sqlStatement = `
+		CREATE TABLE IF NOT EXISTS inventory (
+			itemName LONGTEXT NOT NULL PRIMARY KEY,
+			stockNumber LONGTEXT,
+			itemDescription LONGTEXT,
+			itemsQty MEDIUMINT
+		)
+	`
+
+	_, err = db.Exec(sqlStatement)
+	if err != nil {
+		fmt.Println("💀[FATAL ERROR]: Could not create inventory table \n", err)
+	} else {
+		fmt.Println("✅[SUCCESS]: Created inventory table")
+	}
+
+	fmt.Println("✅[SUCCESS]: Completed Initial Setup \n")
 
 	//Variable initializations
 	var userMenuChoice int // A holder for the user's choice in the menu
@@ -80,8 +94,4 @@ func main() {
 		}
 	}
 
-}
-
-func validateValidDB(connectionString string) bool {
-	return false
 }
