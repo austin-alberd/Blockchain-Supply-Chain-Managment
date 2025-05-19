@@ -4,14 +4,30 @@ import (
 	"database/sql"
 	"fmt"
 	"main/api"
+	"os"
 	"runtime"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var connectionString = "./prod.db"
-
 func main() {
+	//Get the DB connection string
+	var connectionString string
+
+	if os.Getenv("DBCONNSTRING") != "" {
+		connectionString = os.Getenv("DBCONNSTRING")
+		fmt.Println("✅[SUCCESS]: Loaded connection string from environment variables")
+	} else {
+		err := godotenv.Load(".env")
+		if err != nil {
+			fmt.Println("💀 [FATAL ERROR]: Could not load connection string from ENV file ", err)
+			runtime.Goexit()
+		} else {
+			connectionString = os.Getenv("DBCONNSTRING")
+			fmt.Println("✅[SUCCESS]: Loaded connection string from environment variables")
+		}
+	}
 
 	// Connect to the database
 	db, err := sql.Open("sqlite3", connectionString)

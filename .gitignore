@@ -1,1 +1,3 @@
 server/prod.db
+server/.env
+server/api/.env

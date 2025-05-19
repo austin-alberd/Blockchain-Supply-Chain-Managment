@@ -4,7 +4,10 @@ import (
 	_ "database/sql"
 	"fmt"
 	"net/http"
+	"os"
+	"runtime"
 
+	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -93,7 +96,25 @@ func updateItem(w http.ResponseWriter, req *http.Request) {
 Purpose: Exposes the API to the user
 Returns:
 */
+
+var APIADDR string
+
 func ExposeAPI() {
+
+	if os.Getenv("APIADDR") != "" {
+		APIADDR = os.Getenv("APIADDR")
+		fmt.Println("✅[SUCCESS]: Loaded connection string from environment variables")
+	} else {
+		err := godotenv.Load(".env")
+		if err != nil {
+			fmt.Println("💀 [FATAL ERROR]: Could not load api address from ENV file ", err)
+			runtime.Goexit()
+		} else {
+			APIADDR = os.Getenv("APIADDR")
+			fmt.Println("✅[SUCCESS]: Loaded api address from environment variables")
+		}
+	}
+
 	http.HandleFunc("/api/v1/createItem", newItem)
 	http.HandleFunc("/api/v1/getItem", getItem)
 
@@ -104,7 +125,7 @@ func ExposeAPI() {
 		http.Error(w, "API ROOT PAGE", http.StatusTeapot)
 	})
 
-	err := http.ListenAndServe("127.0.0.1:8080", nil)
+	err := http.ListenAndServe(APIADDR, nil)
 	if err != nil {
 		fmt.Println("💀[FATAL ERROR]: Could not start server", err)
 	}
